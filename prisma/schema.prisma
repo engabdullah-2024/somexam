@@ -1,0 +1,82 @@
+// prisma/schema.prisma
+generator client {
+  provider   = "prisma-client-js"
+  // Force Node-API engine (avoids "fetch failed"/Data Proxy issues)
+  engineType = "library"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+enum Subject {
+  SOMALI
+  ISLAMIC
+  ARABIC
+  ENGLISH
+  HISTORY
+  GEOGRAPHY
+  MATH
+  PHYSICS
+  BIOLOGY
+  CHEMISTRY
+  TECHNOLOGY
+  BUSINESS
+}
+
+// Strong typing instead of String
+enum Grade {
+  A
+  B
+  C
+  D
+  E
+}
+
+enum Status {
+  PASSED
+  FAILED
+}
+
+model Admin {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  email        String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now())
+
+  @@map("admins") // collection name
+}
+
+model Student {
+  id           String         @id @default(auto()) @map("_id") @db.ObjectId
+  name         String
+  mothersName  String
+  rollNumber   String         @unique
+  school       String
+  placeOfExam  String
+  grade        Grade          // now enum, still derived on save
+  status       Status         // enum PASSED | FAILED
+  total        Int
+  average      Float
+  percentage   Float
+  scores       SubjectScore[]
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+
+  @@index([rollNumber])
+  @@index([createdAt])
+  @@map("students")
+}
+
+model SubjectScore {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  subject   Subject
+  score     Int
+  studentId String   @db.ObjectId
+  student   Student  @relation(fields: [studentId], references: [id])
+
+  // Ensure only one score per subject per student
+  @@unique([studentId, subject])
+  @@map("subject_scores")
+}
