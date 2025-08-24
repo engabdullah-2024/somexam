@@ -1,7 +1,6 @@
 // prisma/schema.prisma
 generator client {
   provider   = "prisma-client-js"
-  // Force Node-API engine (avoids "fetch failed"/Data Proxy issues)
   engineType = "library"
 }
 
@@ -25,15 +24,6 @@ enum Subject {
   BUSINESS
 }
 
-// Strong typing instead of String
-enum Grade {
-  A
-  B
-  C
-  D
-  E
-}
-
 enum Status {
   PASSED
   FAILED
@@ -45,7 +35,7 @@ model Admin {
   passwordHash String
   createdAt    DateTime @default(now())
 
-  @@map("admins") // collection name
+  @@map("admins")
 }
 
 model Student {
@@ -55,8 +45,8 @@ model Student {
   rollNumber   String         @unique
   school       String
   placeOfExam  String
-  grade        Grade          // now enum, still derived on save
-  status       Status         // enum PASSED | FAILED
+  grade        String         // accepts A+, A, A-, …, F
+  status       Status
   total        Int
   average      Float
   percentage   Float
@@ -64,8 +54,7 @@ model Student {
   createdAt    DateTime       @default(now())
   updatedAt    DateTime       @updatedAt
 
-  @@index([rollNumber])
-  @@index([createdAt])
+  // (Removed @@index lines to satisfy Prisma validation on MongoDB)
   @@map("students")
 }
 
@@ -76,7 +65,6 @@ model SubjectScore {
   studentId String   @db.ObjectId
   student   Student  @relation(fields: [studentId], references: [id])
 
-  // Ensure only one score per subject per student
   @@unique([studentId, subject])
   @@map("subject_scores")
 }
