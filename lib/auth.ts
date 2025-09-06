@@ -1,29 +1,16 @@
-import { SignJWT, jwtVerify } from "jose";
-import { cookies } from "next/headers";
+import { SignJWT, jwtVerify, type JWTPayload } from "jose";
 
-const secret = new TextEncoder().encode(process.env.JWT_SECRET!);
-const COOKIE = "admin_session";
+const SECRET = new TextEncoder().encode(process.env.JWT_SECRET || "dev-secret");
 
-export async function setSession(adminId: string) {
-  const token = await new SignJWT({ sub: adminId, role: "admin" })
+export async function signAdminToken(payload: { id: string; email: string }) {
+  return await new SignJWT({ email: payload.email } as JWTPayload)
     .setProtectedHeader({ alg: "HS256" })
+    .setSubject(payload.id)
     .setIssuedAt()
     .setExpirationTime("7d")
-    .sign(secret);
-  cookies().set(COOKIE, token, { httpOnly: true, sameSite: "lax", secure: true, path: "/" });
+    .sign(SECRET);
 }
 
-export async function getSession() {
-  const token = cookies().get(COOKIE)?.value;
-  if (!token) return null;
-  try {
-    const { payload } = await jwtVerify(token, secret);
-    return payload as { sub: string; role: "admin" };
-  } catch {
-    return null;
-  }
-}
-
-export function clearSession() {
-  cookies().set(COOKIE, "", { path: "/", maxAge: 0 });
+export async function verifyAdminToken(token: string) {
+  return await jwtVerify(token, SECRET);
 }

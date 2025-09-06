@@ -3,29 +3,36 @@ export type LetterGrade =
   | "A+" | "A" | "A-"
   | "B+" | "B" | "B-"
   | "C+" | "C" | "C-"
-  | "D"
-  | "F";
+  | "D+" | "D" | "D-"
+  | "E";
 
 export function gradeFromPct(p: number): LetterGrade {
   const x = Math.max(0, Math.min(100, p)); // clamp 0–100
 
   if (x >= 95) return "A+";
   if (x >= 90) return "A";
-  if (x >= 85) return "A-";
+  if (x >= 80) return "A-";
 
-  if (x >= 80) return "B+";
-  if (x >= 75) return "B";
-  if (x >= 70) return "B-";
+  if (x >= 75) return "B+";
+  if (x >= 70) return "B";
+  if (x >= 65) return "B-";
 
-  if (x >= 65) return "C+";
-  if (x >= 60) return "C";
-  if (x >= 55) return "C-";
+  if (x >= 60) return "C+";
+  if (x >= 55) return "C";
+  if (x >= 50) return "C-";
 
-  if (x >= 50) return "D";
-  return "F";
+  if (x >= 45) return "D+";
+  if (x >= 40) return "D";
+  if (x >= 35) return "D-";
+
+  return "E";
 }
 
+/**
+ * Pass rule:
+ * - "Write anything below D+ as failed."
+ *   ⇒ D+ (≥ 45%) and up = PASSED; below 45% = FAILED.
+ */
 export function passedFromPct(p: number) {
-  // Per your scale, F is < 50, so passing is ≥ 50
-  return p >= 50 ? "PASSED" : "FAILED";
+  return p >= 45 ? "PASSED" : "FAILED";
 }
